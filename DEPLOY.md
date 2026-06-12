@@ -7,8 +7,8 @@
 1. 在 GitHub 创建公开仓库 `miao-daily`。
 2. 将本项目推送到仓库的 `main` 分支。
 3. 打开仓库 **Settings → Pages**。
-4. 在 **Build and deployment** 中将 Source 设为 **GitHub Actions**。
-5. 打开仓库的 **Actions** 页面，等待 `Deploy to GitHub Pages` 工作流完成。
+4. 在 **Build and deployment** 中选择 **Deploy from a branch**。
+5. 发布分支选择 `gh-pages`，目录选择 `/ (root)`。
 
 发布地址通常为：
 
@@ -16,7 +16,7 @@
 https://你的GitHub用户名.github.io/miao-daily/
 ```
 
-以后每次推送到 `main` 分支都会自动重新发布。
+当前私人试用版通过 `gh-pages` 分支发布。更新代码后需要重新构建并发布该分支。
 
 ## 安装到手机桌面
 
