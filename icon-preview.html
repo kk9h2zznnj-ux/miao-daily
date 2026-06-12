@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>猫咪日常 · SVG 图标方向预览</title>
+    <style>
+      :root {
+        color: #4a443e;
+        background: #f8f5ef;
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: radial-gradient(circle at top, #fffdf8 0, #f8f5ef 58%, #f2eee7 100%); }
+      main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 72px; }
+      h1 { margin: 0; font-size: clamp(26px, 4vw, 42px); letter-spacing: -0.04em; }
+      .intro { max-width: 720px; margin: 12px 0 32px; color: #8c8276; line-height: 1.8; font-size: 14px; }
+      .scheme { margin-top: 22px; padding: 26px; background: rgba(255,255,255,.78); border: 1px solid #ece5db; border-radius: 32px; box-shadow: 0 16px 50px rgba(87,72,58,.06); }
+      .scheme-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+      .scheme h2 { margin: 0 0 7px; font-size: 19px; }
+      .scheme p { margin: 0; color: #a0978c; font-size: 12px; line-height: 1.65; }
+      .badge { flex: none; padding: 7px 12px; border-radius: 999px; background: #eff4ef; color: #708875; font-size: 11px; font-weight: 700; }
+      .grid { display: grid; grid-template-columns: repeat(5, minmax(112px, 1fr)); gap: 12px; }
+      .item { min-height: 132px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: 23px; background: #fbfaf7; border: 1px solid #f0ebe3; }
+      .icon-box { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 20px; color: var(--icon-color); background: var(--icon-bg); }
+      .icon-box svg { width: 30px; height: 30px; overflow: visible; }
+      .item span { font-size: 12px; font-weight: 700; }
+      .food { --icon-color:#d9785d; --icon-bg:#fff0eb; }
+      .water { --icon-color:#668fc3; --icon-bg:#edf4fd; }
+      .poop { --icon-color:#8c7662; --icon-bg:#f4efe8; }
+      .pee { --icon-color:#c69d3d; --icon-bg:#fcf5df; }
+      .care { --icon-color:#799b80; --icon-bg:#eef5ef; }
+      .health { --icon-color:#c76753; --icon-bg:#fff0ec; }
+      .stock { --icon-color:#846f5d; --icon-bg:#f2eee8; }
+      .medical { --icon-color:#bf6657; --icon-bg:#fff0ed; }
+      .cleaning { --icon-color:#6d9790; --icon-bg:#edf6f3; }
+      .utility { --icon-color:#88778a; --icon-bg:#f3eef4; }
+      .line, .soft { display: none; }
+      .line svg { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+      .soft svg { fill: none; stroke: currentColor; stroke-width: 1.55; stroke-linecap: round; stroke-linejoin: round; }
+      .soft .wash { fill: currentColor; stroke: none; opacity: .14; }
+      .mini svg { fill: none; stroke: currentColor; stroke-width: 1.85; stroke-linecap: round; stroke-linejoin: round; }
+      .mini .detail { opacity: .48; }
+      .avatar-grid { display: grid; grid-template-columns: repeat(5, minmax(116px, 1fr)); gap: 14px; }
+      .reference-frame { overflow: hidden; border: 1px solid #eddfdf; border-radius: 26px; background: #fff8f6; }
+      .reference-frame img { display: block; width: 100%; aspect-ratio: 3.48 / 1; object-fit: cover; object-position: center 31%; }
+      .icon-reference img { display: block; width: 100%; height: auto; aspect-ratio: auto; object-fit: contain; object-position: center; }
+      .supplement-reference { aspect-ratio: 1.15 / 1; }
+      .supplement-reference img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+      .supplement-title { margin: 26px 2px 14px; font-size: 15px; }
+      .reference-note { margin-top: 12px; color: #9b8f91; font-size: 11px; line-height: 1.7; }
+      .avatar-item { min-height: 162px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border-radius: 24px; background: #fbfaf7; border: 1px solid #f0ebe3; }
+      .avatar-box { width: 94px; height: 94px; display: grid; place-items: center; border-radius: 50%; background: #fff9f7; border: 1px solid #f0e1e3; box-shadow: inset 0 0 22px rgba(220,197,205,.13); }
+      .avatar-box svg { width: 76px; height: 76px; fill: none; stroke: #725e70; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      .avatar-item span { font-size: 12px; font-weight: 700; }
+      .fur-orange { fill: #e7ad83; stroke: none; }
+      .fur-cream { fill: #fff9f3; stroke: none; }
+      .fur-gray { fill: #b9b2b8; stroke: none; }
+      .fur-dark { fill: #655d69; stroke: none; }
+      .fur-brown { fill: #b79794; stroke: none; }
+      .face-dot { fill: #6f5d6c; stroke: none; }
+      .face-light { fill: #fff9f3; stroke: none; }
+      .note { margin-top: 28px; padding: 20px 22px; border-radius: 24px; background: #4a443e; color: #fffaf2; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+      .note strong { display: block; margin-bottom: 4px; font-size: 14px; }
+      .note span { color: #d9d0c6; font-size: 12px; line-height: 1.6; }
+      .paw { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 15px; background: #665e56; }
+      @media (max-width: 900px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+      @media (max-width: 560px) {
+        main { width: min(100% - 20px, 1120px); padding-top: 28px; }
+        .scheme { padding: 18px; border-radius: 26px; }
+        .grid { grid-template-columns: repeat(2, 1fr); }
+        .avatar-grid { grid-template-columns: repeat(2, 1fr); }
+        .scheme-head { display: block; }
+        .badge { display: inline-block; margin-top: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>猫咪日常 · 最终图标方案</h1>
+      <p class="intro">功能图标统一采用 C：直观、圆润、单一语义。猫咪品种头像严格采用你提供的原图，不再重新设计或改变花色与脸型。</p>
+
+      <section class="scheme line">
+        <div class="scheme-head">
+          <div>
+            <h2>A. 圆润手帐线描</h2>
+            <p>柔软、清晰、带一点手绘感。通过猫耳、尾巴和肉垫点到为止，适合当前 App。</p>
+          </div>
+          <span class="badge">推荐方向</span>
+        </div>
+        <div class="grid">
+          <div class="item food"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 11.5h16c-.3 5-3.2 8-8 8s-7.7-3-8-8Z"/><path d="m7 11.5-2-3.3 4 1.5M17 11.5l2-3.3-4 1.5"/><path d="M9 15h.01M15 15h.01M10.5 17c1 .7 2 .7 3 0"/></svg></div><span>吃饭</span></div>
+          <div class="item water"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 13h16c-.4 4.3-3.2 6.5-8 6.5S4.4 17.3 4 13Z"/><path d="M7 13c1.7-1.1 3.3-1.1 5 0s3.3 1.1 5 0"/><path d="M12 3.8s-2.8 3.1-2.8 5a2.8 2.8 0 0 0 5.6 0c0-1.9-2.8-5-2.8-5Z"/></svg></div><span>喝水</span></div>
+          <div class="item poop"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M9 8.5c0-1.2 1-2.1 2.3-2.1-.5-1.6.3-3 1.7-3.4.1 1.6 1 2.4 2.2 3.2 1 .6 1.4 1.5 1.1 2.5 2.1.2 3.7 2 3.7 4.2 0 2.5-2 4.4-4.6 4.4H8.2A4.2 4.2 0 0 1 4 13.1c0-2.3 1.8-4.2 4.1-4.2.3 0 .6 0 .9.1Z"/><path d="M9.5 13h.01M14.5 13h.01"/></svg></div><span>排便</span></div>
+          <div class="item pee"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 12h16l-1.3 7H5.3L4 12Z"/><path d="m6 12 1.5-4 3 2M18 12l-1.5-4-3 2"/><path d="M12 4s-2.1 2.4-2.1 3.9a2.1 2.1 0 0 0 4.2 0C14.1 6.4 12 4 12 4Z"/></svg></div><span>尿尿</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M5 5.5h8a2 2 0 0 1 2 2v2H5v-4Z"/><path d="M7 9.5v8M10 9.5v9.5M13 9.5v8"/><path d="M17 6c2 1.2 3 3 3 5.5"/><path d="M18.5 14.5c-1.4 0-2.5 1-2.5 2.2s1.1 2.3 2.5 2.3 2.5-1 2.5-2.3-1.1-2.2-2.5-2.2Z"/></svg></div><span>护理</span></div>
+          <div class="item health"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4.5 12V7l3 2.2A7.6 7.6 0 0 1 12 7.8a7.6 7.6 0 0 1 4.5 1.4l3-2.2v5c0 4.4-3.3 7.5-7.5 7.5S4.5 16.4 4.5 12Z"/><path d="M12 10.8v5M9.5 13.3h5"/></svg></div><span>健康</span></div>
+          <div class="item stock"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 8.5h16v10.8H4V8.5Z"/><path d="M3 5h18v3.5H3V5Z"/><path d="m7 5 2-2 3 2 3-2 2 2"/><path d="M9.5 13h5"/></svg></div><span>库存</span></div>
+        </div>
+      </section>
+
+      <section class="scheme soft">
+        <div class="scheme-head">
+          <div>
+            <h2>B. 软糯双色图标</h2>
+            <p>线描中增加小面积色块，视觉更活泼、更像插画，但小尺寸时会稍显丰富。</p>
+          </div>
+          <span class="badge">更可爱</span>
+        </div>
+        <div class="grid">
+          <div class="item food"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M4 11h16c0 5-3 8.5-8 8.5S4 16 4 11Z"/><path d="M4 11h16c0 5-3 8.5-8 8.5S4 16 4 11Z"/><path d="m7 11-2-3 4 1.5M17 11l2-3-4 1.5"/><circle class="wash" cx="12" cy="15" r="2.5"/></svg></div><span>吃饭</span></div>
+          <div class="item water"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M4 13h16c0 4.3-3 6.5-8 6.5S4 17.3 4 13Z"/><path d="M4 13h16c0 4.3-3 6.5-8 6.5S4 17.3 4 13Z"/><path class="wash" d="M12 3.5s-3 3.2-3 5.2a3 3 0 0 0 6 0c0-2-3-5.2-3-5.2Z"/><path d="M12 3.5s-3 3.2-3 5.2a3 3 0 0 0 6 0c0-2-3-5.2-3-5.2Z"/></svg></div><span>喝水</span></div>
+          <div class="item poop"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M9 9c-.3-1.6.8-2.7 2.4-2.7-.5-1.7.4-3.1 1.8-3.4.2 1.6 1 2.5 2.3 3.2 1 .7 1.4 1.6 1.1 2.7 2.1.2 3.7 2 3.7 4.2 0 2.6-2.1 4.5-4.7 4.5H8.1A4.1 4.1 0 0 1 4 13.3C4 11 5.8 9 8.2 9H9Z"/><path d="M9 9c-.3-1.6.8-2.7 2.4-2.7-.5-1.7.4-3.1 1.8-3.4.2 1.6 1 2.5 2.3 3.2 1 .7 1.4 1.6 1.1 2.7 2.1.2 3.7 2 3.7 4.2 0 2.6-2.1 4.5-4.7 4.5H8.1A4.1 4.1 0 0 1 4 13.3C4 11 5.8 9 8.2 9H9Z"/></svg></div><span>排便</span></div>
+          <div class="item pee"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M4 12h16l-1.3 7H5.3L4 12Z"/><path d="M4 12h16l-1.3 7H5.3L4 12Z"/><path class="wash" d="M12 3.5s-2.4 2.7-2.4 4.3a2.4 2.4 0 0 0 4.8 0c0-1.6-2.4-4.3-2.4-4.3Z"/><path d="M12 3.5s-2.4 2.7-2.4 4.3a2.4 2.4 0 0 0 4.8 0c0-1.6-2.4-4.3-2.4-4.3Z"/></svg></div><span>尿尿</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M5 5h10v5H5V5Z"/><path d="M5 5h8a2 2 0 0 1 2 2v3H5V5ZM7 10v8M10 10v9M13 10v8"/><path class="wash" d="M19 13.5l1.2 2.2 2.3 1.1-2.3 1.1L19 20l-1.1-2.1-2.3-1.1 2.3-1.1L19 13.5Z"/></svg></div><span>护理</span></div>
+          <div class="item health"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M4.5 12V7l3 2A7.5 7.5 0 0 1 12 7.7 7.5 7.5 0 0 1 16.5 9l3-2v5c0 4.5-3.3 7.5-7.5 7.5S4.5 16.5 4.5 12Z"/><path d="M4.5 12V7l3 2A7.5 7.5 0 0 1 12 7.7 7.5 7.5 0 0 1 16.5 9l3-2v5c0 4.5-3.3 7.5-7.5 7.5S4.5 16.5 4.5 12ZM12 10.5v5.5M9.2 13.2h5.6"/></svg></div><span>健康</span></div>
+          <div class="item stock"><div class="icon-box"><svg viewBox="0 0 24 24"><path class="wash" d="M4 8h16v11H4V8Z"/><path d="M4 8h16v11H4V8ZM3 5h18v3H3V5Z"/><path class="wash" d="m7 5 2-2 3 2 3-2 2 2"/></svg></div><span>库存</span></div>
+        </div>
+      </section>
+
+      <section class="scheme mini">
+        <div class="scheme-head">
+          <div>
+            <h2>已确认图标 · 使用你的原稿</h2>
+            <p>以下图标直接使用你制作的表格，不重新绘制，不改变造型、线条和配色。</p>
+          </div>
+          <span class="badge">原稿锁定</span>
+        </div>
+        <div class="reference-frame icon-reference">
+          <img src="/final-icon-reference.png" alt="用户确认的猫咪日常功能图标表格" />
+        </div>
+
+        <h3 class="supplement-title">按照同一风格补充的图标</h3>
+        <div class="reference-frame icon-reference supplement-reference">
+          <img src="/final-supplement-icons.png" alt="用户确认的补充功能图标原稿" />
+        </div>
+        <div class="grid" style="display:none">
+          <div class="item food"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M20.5 12c-2.1-3.2-4.9-4.8-8.3-4.8-3.5 0-6.4 1.7-8.7 4.8 2.3 3.1 5.2 4.8 8.7 4.8 3.4 0 6.2-1.6 8.3-4.8Z"/><path d="M3.6 12 1.5 9.3v5.4L3.6 12Z"/><circle cx="16.8" cy="11.3" r=".8" fill="currentColor" stroke="none"/><path class="detail" d="M9.2 9.5c1 1.6 1 3.4 0 5M12.5 7.5l-1.1 1.8M12.5 16.5l-1.1-1.8"/></svg></div><span>吃饭</span></div>
+          <div class="item water"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 3.2S6.5 9.1 6.5 14a5.5 5.5 0 0 0 11 0C17.5 9.1 12 3.2 12 3.2Z"/><path class="detail" d="M9.2 14.5a3 3 0 0 0 2.8 2.3"/></svg></div><span>喝水</span></div>
+          <div class="item poop"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M8 9c0-1.5 1.3-2.5 3-2.3-.5-1.8.4-3.2 2-3.7.1 2.2 1.2 2.7 2.5 3.6 1 .7 1.3 1.6 1 2.6 2.1.2 3.5 1.8 3.5 3.9 0 2.5-2 4.4-4.5 4.4h-7A4.5 4.5 0 0 1 4 13.1C4 10.8 5.8 9 8 9Z"/></svg></div><span>排便</span></div>
+          <div class="item pee"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 12.5h16L18.5 19h-13L4 12.5Z"/><path d="M12 4s-2.5 2.8-2.5 4.4a2.5 2.5 0 0 0 5 0C14.5 6.8 12 4 12 4Z"/></svg></div><span>尿尿</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M7.2 11V6.2a1.3 1.3 0 0 1 2.6 0V10M9.8 10V4.8a1.3 1.3 0 0 1 2.6 0V10M12.4 10V5.2a1.3 1.3 0 0 1 2.6 0v5.3M15 10.5V7.2a1.3 1.3 0 0 1 2.6 0v7.2c0 3.5-2.5 6.1-6 6.1-2.4 0-4.2-1-5.5-3l-2.3-3.2a1.5 1.5 0 0 1 2.3-1.9l1.1.9V11Z"/></svg></div><span>护理</span></div>
+          <div class="item health"><div class="icon-box"><svg viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="3"/><path d="M8.5 7.5V5.8c0-.8.7-1.5 1.5-1.5h4c.8 0 1.5.7 1.5 1.5v1.7M12 10.5v6M9 13.5h6"/></svg></div><span>健康档案</span></div>
+          <div class="item stock"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 8h16v11H4V8ZM3 5h18v3H3V5Z"/><path class="detail" d="m8 5 2-2 2 2 2-2 2 2"/></svg></div><span>库存</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="10" height="5" rx="1.8"/><path d="M7 9v9M9.7 9v10M12.3 9v10M15 9v9"/><path d="M15 6.5h3.5a1.5 1.5 0 0 1 0 3H17"/></svg></div><span>梳毛</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="12" r="7"/><path d="M6.5 8.5c3 1 6 3.3 8.6 7M7 15.8c2.7-2.8 5.8-5 9.2-6.5M10 5.2c.5 4.8 2.5 9 5.8 12.3"/><path d="M17 17c2.5.3 3.8 1.5 4 3"/></svg></div><span>陪玩</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4.5 13V7l3 2.2A7.7 7.7 0 0 1 12 7.8a7.7 7.7 0 0 1 4.5 1.4l3-2.2v6c0 4.1-3.3 7-7.5 7s-7.5-2.9-7.5-7Z"/><path d="M20 4.2s-2.1 2.4-2.1 3.9a2.1 2.1 0 0 0 4.2 0C22.1 6.6 20 4.2 20 4.2Z"/></svg></div><span>擦脸</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M8.2 20c-3.2-4.3-3.3-10.1-.2-15.7.8-1.5 2.8-1.7 3.9-.4l5.5 6.4c1 1.2.6 3-1 3.6l-3.5 1.7-1.4 3.3c-.6 1.5-2.4 2-3.3 1.1Z"/><path class="detail" d="M9.5 7.5c1.8 1.5 3.2 3.2 4.3 5.1"/></svg></div><span>洗耳朵</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="m5 17.5 10-10 3.5 3.5-10 10H5v-3.5Z"/><path d="m13.5 9 3.5 3.5M17.5 6.5l2-2M19.2 8.2l2-2M16 5l2-2"/></svg></div><span>刷牙</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="3.2"/><circle cx="7" cy="17" r="3.2"/><path d="m9.5 9 10 10M9.5 15l10-10"/><circle cx="15" cy="12" r="1"/></svg></div><span>剪指甲</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 19c-3.5 0-6-2.2-6-5.2 0-2.7 2.5-4.8 6-4.8s6 2.1 6 4.8c0 3-2.5 5.2-6 5.2Z"/><ellipse cx="7" cy="8" rx="1.6" ry="2.2"/><ellipse cx="11" cy="6.5" rx="1.6" ry="2.2"/><ellipse cx="15" cy="7" rx="1.6" ry="2.2"/><path class="detail" d="m18 5 3 3M21 5l-3 3"/></svg></div><span>剃脚毛</span></div>
+          <div class="item care"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M3 11h18v5a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-5Z"/><path d="M6 11V7a2 2 0 0 1 4 0v1M3 14h18"/><path class="detail" d="M7 20v1M17 20v1"/></svg></div><span>洗澡</span></div>
+          <div class="item cleaning"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 12h16v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5Z"/><path d="M7 12c1.7-1.3 3.3-1.3 5 0s3.3 1.3 5 0"/><path class="detail" d="m18 4 .8 1.8 1.7.8-1.7.8-.8 1.8-.8-1.8-1.7-.8 1.7-.8L18 4Z"/></svg></div><span>清洗水碗</span></div>
+          <div class="item cleaning"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 12h16c-.4 5-3.2 8-8 8s-7.6-3-8-8Z"/><circle cx="9" cy="9" r="1.3"/><circle cx="13" cy="8" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path class="detail" d="m19 4 .7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7L19 4Z"/></svg></div><span>清洗饭碗</span></div>
+          <div class="item cleaning"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 12h-13L4 8Z"/><path d="M7 8V5h10v3M8 13c2.7-1.3 5.3-1.3 8 0"/><path class="detail" d="m19 3 .6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6L19 3Z"/></svg></div><span>清洗猫砂盆</span></div>
+          <div class="item medical"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="m5 19 10-10 4 4L9 23H5v-4Z"/><path d="m13 11 4 4M16 8l2-2 2 2-2 2"/><path class="detail" d="M4 6h6M7 3v6"/></svg></div><span>体内驱虫</span></div>
+          <div class="item medical"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 3s-5 5.5-5 10a5 5 0 0 0 10 0c0-4.5-5-10-5-10Z"/><path d="M9.5 14.5c1.7 1 3.3 1 5 0"/><path class="detail" d="m18 5 3 3M21 5l-3 3"/></svg></div><span>体外驱虫</span></div>
+          <div class="item medical"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="m5 19 10-10 4 4L9 23H5v-4Z"/><path d="m13 11 4 4M15 9l2-2M17 5l2 2M4 20l-2 2"/><path d="M18 4l2-2M20 6l2-2"/></svg></div><span>疫苗</span></div>
+          <div class="item medical"><div class="icon-box"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 9h16"/><path d="m8 14 2 2 5-5"/></svg></div><span>医疗提醒</span></div>
+          <div class="item health"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M3 13h4l2-5 3 9 2-5h7"/><path class="detail" d="M5 5h14a2 2 0 0 1 2 2v12H3V7a2 2 0 0 1 2-2Z"/></svg></div><span>异常观察</span></div>
+          <div class="item medical"><div class="icon-box"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 9h8M12 9v3"/><path d="M9 16c2-2 4-2 6 0"/></svg></div><span>体重</span></div>
+          <div class="item stock"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M5 7h14v13H5V7ZM4 4h16v3H4V4Z"/><path d="M9 11h6M9 15h4"/></svg></div><span>库存物资</span></div>
+          <div class="item utility"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 20c4.4 0 8-3.1 8-7 0-2.6-1.8-5-4.5-6.2L12 3 8.5 6.8C5.8 8 4 10.4 4 13c0 3.9 3.6 7 8 7Z"/><path d="M9 13h6M12 10v6"/></svg></div><span>添加记录</span></div>
+          <div class="item utility"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M5 19h4L20 8l-4-4L5 15v4Z"/><path d="m13 7 4 4M5 15l4 4"/></svg></div><span>编辑</span></div>
+          <div class="item utility"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></div><span>完成</span></div>
+        </div>
+      </section>
+
+      <section class="scheme">
+        <div class="scheme-head">
+          <div>
+            <h2>猫咪品种头像 · 锁定原图</h2>
+            <p>这里直接展示你提供的原图，不做任何重新绘制、变形、改色或风格解释。</p>
+          </div>
+          <span class="badge">严格按原图</span>
+        </div>
+        <div class="reference-frame">
+          <img src="/cat-avatar-reference.png" alt="用户指定的橘猫、三花猫、英短、暹罗猫和黑猫头像原图" />
+        </div>
+        <p class="reference-note">后续进入 App 时，将以这五个头像为唯一视觉基准，保持相同的轮廓、五官、描边、花色分区和柔和质感。</p>
+        <div class="avatar-grid" style="display:none">
+          <div class="avatar-item">
+            <div class="avatar-box"><svg viewBox="0 0 72 72"><path class="fur-cream" d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path class="fur-orange" d="M15.5 22.3 26 30l4.5-4.4v20.7c-7.3 1.5-12.8-2.3-15.5-7.8V22.3ZM32 24.8h3.3v13H32zM38 24.8h3.3v13H38z"/><circle class="face-dot" cx="27" cy="40" r="2.5"/><circle class="face-dot" cx="45" cy="40" r="2.5"/><path d="M33.8 46.2c1.4 1.3 3 1.3 4.4 0M36 45.2v3.3M24 46.5l-9 1M24 50l-8 3M48 46.5l9 1M48 50l8 3"/></svg></div>
+            <span>橘猫</span>
+          </div>
+          <div class="avatar-item">
+            <div class="avatar-box"><svg viewBox="0 0 72 72"><path class="fur-cream" d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path class="fur-orange" d="M14.8 22 27 29.5l7-5-2 17-12.8.5-4.4-6.8V22Z"/><path class="fur-gray" d="m46 25 11-6v18.5L49 42l-8-4 5-13Z"/><circle class="face-dot" cx="27" cy="41" r="2.5"/><circle class="face-dot" cx="45" cy="41" r="2.5"/><path d="M33.8 47c1.4 1.3 3 1.3 4.4 0M36 46v3.3M24 47l-9 1M48 47l9 1"/></svg></div>
+            <span>三花猫</span>
+          </div>
+          <div class="avatar-item">
+            <div class="avatar-box"><svg viewBox="0 0 72 72"><path class="fur-gray" d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><circle class="face-dot" cx="27" cy="40" r="2.5"/><circle class="face-dot" cx="45" cy="40" r="2.5"/><path d="M33.8 46.2c1.4 1.3 3 1.3 4.4 0M36 45.2v3.3"/></svg></div>
+            <span>英短</span>
+          </div>
+          <div class="avatar-item">
+            <div class="avatar-box"><svg viewBox="0 0 72 72"><path class="fur-cream" d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path class="fur-brown" d="m14 19 12 8-7 12-5-3V19ZM58 19l-12 8 7 12 5-3V19ZM24.5 37c3-7.3 20-7.3 23 0-1 9.5-6 15.5-11.5 15.5S25.5 46.5 24.5 37Z"/><circle class="face-dot" cx="28" cy="40" r="2.5"/><circle class="face-dot" cx="44" cy="40" r="2.5"/><path d="M33.8 47c1.4 1.3 3 1.3 4.4 0M36 46v3.3"/></svg></div>
+            <span>暹罗猫</span>
+          </div>
+          <div class="avatar-item">
+            <div class="avatar-box"><svg viewBox="0 0 72 72"><path class="fur-dark" d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><path d="M13 36V20c0-2 2-3 3.5-1.7l9.2 7.4A27 27 0 0 1 36 23.8c3.7 0 7.2.7 10.3 1.9l9.2-7.4C57 17 59 18 59 20v16c0 15.7-9.2 24.5-23 24.5S13 51.7 13 36Z"/><circle class="face-light" cx="27" cy="40" r="2.5"/><circle class="face-light" cx="45" cy="40" r="2.5"/><path stroke="#fff9f3" d="M33.8 46.2c1.4 1.3 3 1.3 4.4 0M36 45.2v3.3M24 46.5l-9 1M48 46.5l9 1"/></svg></div>
+            <span>黑猫</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="note">
+        <div class="paw">♡</div>
+        <div><strong>最终方向：完整 C 系列 + 原图猫咪头像。</strong><span>健康使用医疗箱，医疗子项分别使用药物、水滴、针筒、日历和心电图；猫咪头像严格按指定原图执行。</span></div>
+      </div>
+    </main>
+  </body>
+</html>
