@@ -3,3 +3,10 @@ dist
 .DS_Store
 *.local
 node_modules/.tmp
+Icon?
+code_artifact-*.tsx
+public/*-reference.png
+public/final-*-icons.png
+public/avatars/*\ *.png
+public/icons/main/*\ *.png
+public/icons/supplement/*\ *.png
