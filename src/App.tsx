@@ -271,16 +271,31 @@ const PoopVolumeIcon = ({ count = 1, scale = 1, showShockLines = false, isSelect
 
 // 猫咪头像严格使用已确认原稿。旧头像值继续映射，避免历史数据失效。
 const createCatAvatar = (fileName) => ({ className = "" }) => (
-  <img src={assetUrl(`avatars/${fileName}.png`)} className={`${className} object-contain rounded-full`} alt="" aria-hidden="true" />
+  <img src={assetUrl(`avatars/v2/${fileName}.png`)} className={`${className} object-contain rounded-full`} alt="" aria-hidden="true" />
 );
 const CatAvatars = {
   orange: createCatAvatar('orange'),
   calico: createCatAvatar('calico'),
-  shorthair: createCatAvatar('shorthair'),
+  shorthair: createCatAvatar('british-shorthair'),
+  british_shorthair: createCatAvatar('british-shorthair'),
   siamese: createCatAvatar('siamese'),
   black: createCatAvatar('black'),
+  american_shorthair: createCatAvatar('american-shorthair'),
+  ragdoll: createCatAvatar('ragdoll'),
+  maine_coon: createCatAvatar('maine-coon'),
+  persian: createCatAvatar('persian'),
+  exotic_shorthair: createCatAvatar('exotic-shorthair'),
+  golden_shaded: createCatAvatar('golden-shaded'),
+  silver_shaded: createCatAvatar('silver-shaded'),
+  scottish_fold: createCatAvatar('scottish-fold'),
+  munchkin: createCatAvatar('munchkin'),
+  russian_blue: createCatAvatar('russian-blue'),
+  bengal: createCatAvatar('bengal'),
+  abyssinian: createCatAvatar('abyssinian'),
+  sphynx: createCatAvatar('sphynx'),
+  devon_rex: createCatAvatar('devon-rex'),
+  birman: createCatAvatar('birman'),
   tuxedo: createCatAvatar('black'),
-  ragdoll: createCatAvatar('siamese')
 };
 
 const AVATAR_OPTIONS = [
@@ -288,7 +303,22 @@ const AVATAR_OPTIONS = [
   { id: 'calico', name: '三花猫' },
   { id: 'shorthair', name: '英短' },
   { id: 'siamese', name: '暹罗猫' },
-  { id: 'black', name: '黑猫' }
+  { id: 'black', name: '黑猫' },
+  { id: 'american_shorthair', name: '美短' },
+  { id: 'ragdoll', name: '布偶猫' },
+  { id: 'maine_coon', name: '缅因猫' },
+  { id: 'persian', name: '波斯猫' },
+  { id: 'exotic_shorthair', name: '加菲猫' },
+  { id: 'golden_shaded', name: '金渐层' },
+  { id: 'silver_shaded', name: '银渐层' },
+  { id: 'scottish_fold', name: '折耳' },
+  { id: 'munchkin', name: '曼基康' },
+  { id: 'russian_blue', name: '俄罗斯蓝猫' },
+  { id: 'bengal', name: '孟加拉豹猫' },
+  { id: 'abyssinian', name: '阿比西尼亚' },
+  { id: 'sphynx', name: '无毛猫' },
+  { id: 'devon_rex', name: '德文卷毛' },
+  { id: 'birman', name: '伯曼猫' }
 ];
 
 // --- 饮食结构配置 ---
@@ -3552,18 +3582,30 @@ export default function App() {
               <h2 className="text-xl font-bold text-center mb-6 text-[#4A443E]">{catModal.mode === 'add' ? '迎接新主子' : '编辑主子信息'}</h2>
               
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-[#8C8276] mb-3 px-1">选择猫咪花色</label>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1">
+                <label className="block text-sm font-semibold text-[#8C8276] mb-1 px-1">选择最像它的小头像</label>
+                <p className="text-[11px] text-[#A9A096] mb-4 px-1">不需要完全一样，挑一个看起来最亲切的就好。</p>
+                <div className="grid grid-cols-4 gap-x-2 gap-y-4 max-h-[310px] overflow-y-auto no-scrollbar pb-2 px-1">
                   {AVATAR_OPTIONS.map(opt => {
                     const Icon = CatAvatars[opt.id];
                     const isSelected = catForm.avatar === opt.id;
                     return (
-                      <div key={opt.id} onClick={() => setCatForm(prev => ({ ...prev, avatar: opt.id }))} className={`flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer jelly-touch ${isSelected ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
-                        <div className={`w-[60px] h-[60px] rounded-[24px] flex items-center justify-center transition-all ${isSelected ? 'bg-white shadow-md border-2 border-[#D29E7A]' : 'bg-[#F4EFE6] border-2 border-transparent'}`}>
-                          <Icon className="w-10 h-10 text-[#5D554D]" />
+                      <button
+                        type="button"
+                        key={opt.id}
+                        onClick={() => setCatForm(prev => ({ ...prev, avatar: opt.id }))}
+                        className="flex min-w-0 flex-col items-center gap-1.5 jelly-touch"
+                        aria-pressed={isSelected}
+                      >
+                        <div className={`relative w-[62px] h-[62px] rounded-full flex items-center justify-center transition-all ${isSelected ? 'shadow-[0_5px_16px_rgba(210,158,122,0.22)] ring-2 ring-[#D29E7A] ring-offset-2 ring-offset-[#FDFBF7]' : ''}`}>
+                          <Icon className="w-full h-full" />
+                          {isSelected && (
+                            <span className="absolute -right-1 -bottom-1 w-5 h-5 rounded-full bg-[#D29E7A] text-white flex items-center justify-center border-2 border-[#FDFBF7]">
+                              <Icons.Check className="w-3 h-3" />
+                            </span>
+                          )}
                         </div>
-                        <span className={`text-xs font-semibold ${isSelected ? 'text-[#D29E7A]' : 'text-[#A9A096]'}`}>{opt.name}</span>
-                      </div>
+                        <span className={`w-full text-center text-[10px] leading-tight font-semibold ${isSelected ? 'text-[#D29E7A]' : 'text-[#8C8276]'}`}>{opt.name}</span>
+                      </button>
                     )
                   })}
                 </div>

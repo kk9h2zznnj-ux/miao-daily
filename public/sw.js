@@ -1,11 +1,12 @@
-const CACHE_NAME = 'miao-daily-shell-v1';
+const CACHE_NAME = 'miao-daily-shell-v2';
 const BASE_PATH = new URL('./', self.registration.scope).pathname;
 const APP_SHELL = [
   BASE_PATH,
   `${BASE_PATH}manifest.webmanifest`,
   `${BASE_PATH}app-icon-192.png`,
   `${BASE_PATH}app-icon-512.png`,
-  `${BASE_PATH}apple-touch-icon.png`
+  `${BASE_PATH}apple-touch-icon.png`,
+  `${BASE_PATH}favicon.png`
 ];
 
 self.addEventListener('install', event => {
