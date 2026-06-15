@@ -513,7 +513,8 @@ const TYPE_INFO = {
 
 export default function App() {
   const [data, setData] = useState({ 
-    cats: [{ id: '1', name: '毛孩子', avatar: 'orange' }], 
+    cats: [],
+    archivedCats: {},
     records: [],
     health: {},
     brandHistory: [], 
@@ -522,7 +523,7 @@ export default function App() {
     stocks: { food: '充足', litter: '一半', meds: '见底啦' },
     stockItems: []
   });
-  const [currentCatId, setCurrentCatId] = useState('1');
+  const [currentCatId, setCurrentCatId] = useState('');
   const [isHydrated, setIsHydrated] = useState(false);
   const [isWagging, setIsWagging] = useState(false);
   const [showStamp, setShowStamp] = useState({ show: false, type: 'complete' }); 
@@ -564,6 +565,10 @@ export default function App() {
   const [dataToolsOpen, setDataToolsOpen] = useState(false);
   const [backupNotice, setBackupNotice] = useState('');
   const backupInputRef = useRef(null);
+  const [pendingDeleteRecord, setPendingDeleteRecord] = useState(null);
+  const [pendingDeleteCat, setPendingDeleteCat] = useState(null);
+  const [undoDeletion, setUndoDeletion] = useState(null);
+  const undoTimerRef = useRef(null);
 
   // 饮食专属状态
   const [foodState, setFoodState] = useState({ tab: 'main', subType: '干粮', brand: '', amount: 50 });
@@ -877,9 +882,8 @@ export default function App() {
     if (localData) {
       try {
         const parsed = JSON.parse(localData);
-        if (!Array.isArray(parsed.cats) || parsed.cats.length === 0) {
-          parsed.cats = [{ id: '1', name: '毛孩子', avatar: 'orange' }];
-        }
+        if (!Array.isArray(parsed.cats)) parsed.cats = [];
+        if (!parsed.archivedCats || typeof parsed.archivedCats !== 'object') parsed.archivedCats = {};
         if (!parsed.brandHistory || !Array.isArray(parsed.brandHistory)) parsed.brandHistory = [];
         if (!parsed.customFoodSubs || typeof parsed.customFoodSubs !== 'object') parsed.customFoodSubs = { main: [], snack: [], supplement: [] };
         if (!parsed.customHealthTags || typeof parsed.customHealthTags !== 'object') parsed.customHealthTags = { gastro: [], skin: [], stress: [], others: [] };
@@ -893,7 +897,8 @@ export default function App() {
         parsed.stockItems = migrateStockItems(parsed.stockItems, parsed.stocks);
         parsed.records = migrateRecords(parsed.records);
         setData(parsed);
-        if (parsed.cats && parsed.cats.length > 0) setCurrentCatId(parsed.cats[0].id);
+        if (parsed.cats.length > 0) setCurrentCatId(parsed.cats[0].id);
+        else setViewMode('family');
       } catch (error) {
         console.warn('猫咪日常数据读取失败，已保留默认数据。', error);
       }
@@ -903,7 +908,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isHydrated && data.cats && data.cats.length > 0) {
+    if (isHydrated) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
   }, [data, isHydrated]);
@@ -957,6 +962,7 @@ export default function App() {
 
   const getDefaultAssignment = (type, foodTab = foodState.tab, selectedWaterMode = waterMode) => {
     const cats = data.cats || [];
+    if (cats.length === 0) return { scope: 'unknown', catIds: [] };
     if (cats.length === 1) return { scope: 'single', catIds: [cats[0].id] };
     if (type === 'food') {
       return foodTab === 'main'
@@ -974,6 +980,11 @@ export default function App() {
 
   const getInitialAssignment = (type, foodTab = foodState.tab, selectedWaterMode = waterMode) => {
     const defaultAssignment = getDefaultAssignment(type, foodTab, selectedWaterMode);
+    if (type === 'health') {
+      return viewMode === 'cat' && data.cats?.some(cat => cat.id === currentCatId)
+        ? { scope: 'single', catIds: [currentCatId] }
+        : { scope: 'unknown', catIds: [] };
+    }
     if ((data.cats || []).length === 1) return defaultAssignment;
     const key = getAssignmentContextKey(type, foodTab, selectedWaterMode);
     return normalizeAssignment(ownerPreferences[key]) || defaultAssignment;
@@ -998,10 +1009,11 @@ export default function App() {
     if (scope === 'shared') return '🏠 共同 / 分不清';
     if (scope === 'unknown') return '☁️ 不确定是谁';
     const names = (catIds || [])
-      .map(id => data.cats?.find(cat => cat.id === id)?.name)
+      .map(id => data.cats?.find(cat => cat.id === id)?.name || data.archivedCats?.[id]?.name)
       .filter(Boolean);
     if (scope === 'multiple') return `🐾 ${names.join('、') || '多只猫咪'}`;
-    return `🐱 ${names[0] || '明确归属'}`;
+    const deletedSuffix = catIds?.length === 1 && data.archivedCats?.[catIds[0]] ? '（已删除）' : '';
+    return `🐱 ${names[0] || '明确归属'}${deletedSuffix}`;
   };
 
   const getRecordDisplayTitle = (record, typeInfo) => {
@@ -1110,11 +1122,13 @@ export default function App() {
       ...(healthPhoto && sheetConfig.type === 'health' ? { photo: healthPhoto } : {})
     });
 
-    const preferenceKey = getAssignmentContextKey(sheetConfig.type);
-    setOwnerPreferences(prev => ({
-      ...prev,
-      [preferenceKey]: assignment
-    }));
+    if (sheetConfig.type !== 'health') {
+      const preferenceKey = getAssignmentContextKey(sheetConfig.type);
+      setOwnerPreferences(prev => ({
+        ...prev,
+        [preferenceKey]: assignment
+      }));
+    }
 
     setData(prev => {
       return {
@@ -1189,7 +1203,7 @@ export default function App() {
         records: [
           ...migrateRecords(prev.records),
           normalizeRecord({
-            id: createRecordId(),
+            id: itemId,
             occurredAt: buildOccurredAt(date, time),
             date,
             time,
@@ -1214,10 +1228,20 @@ export default function App() {
     if (!catForm.name || typeof catForm.name !== 'string' || !catForm.name.trim()) return;
     if (catModal.mode === 'add') {
       const newId = Date.now().toString();
-      setData(prev => ({
-        ...prev,
-        cats: [...(prev.cats || []), { id: newId, name: catForm.name.trim(), avatar: catForm.avatar }]
-      }));
+      setData(prev => {
+        const records = migrateRecords(prev.records);
+        const hasUnusedPrototypeCat = prev.cats?.length === 1
+          && prev.cats[0].id === '1'
+          && prev.cats[0].name === '毛孩子'
+          && !records.some(record => record.catIds?.includes('1'))
+          && !prev.health?.['1'];
+        return {
+          ...prev,
+          cats: hasUnusedPrototypeCat
+            ? [{ id: newId, name: catForm.name.trim(), avatar: catForm.avatar }]
+            : [...(prev.cats || []), { id: newId, name: catForm.name.trim(), avatar: catForm.avatar }]
+        };
+      });
       switchCat(newId);
     } else if (catModal.mode === 'edit') {
       setData(prev => ({
@@ -1226,6 +1250,84 @@ export default function App() {
       }));
     }
     setCatModal({ isOpen: false, mode: 'add', catId: null });
+  };
+
+  const removeLinkedHealthData = (sourceData, record) => {
+    if (!record?.catIds?.length || !['weight', 'internal_deworm', 'external_deworm', 'deworm', 'vaccine', 'reminder'].includes(record.type)) {
+      return sourceData.health;
+    }
+    const catId = record.catIds[0];
+    const profile = migrateHealthProfile(sourceData.health?.[catId]);
+    const matchesDate = item => (item.date || item.dueDate) === record.date;
+    const nextProfile = { ...profile };
+    if (record.type === 'weight') {
+      nextProfile.weights = profile.weights.filter(item =>
+        !(item.id === record.id || (matchesDate(item) && Number(item.weight) === Number(record.details?.weight)))
+      );
+    } else if (['internal_deworm', 'external_deworm', 'deworm'].includes(record.type)) {
+      nextProfile.dewormings = profile.dewormings.filter(item =>
+        !(item.id === record.id || (matchesDate(item) && (!record.details?.kind || item.kind === record.details.kind)))
+      );
+    } else if (record.type === 'vaccine') {
+      nextProfile.vaccines = profile.vaccines.filter(item =>
+        !(item.id === record.id || (matchesDate(item) && (!record.details?.name || item.name === record.details.name)))
+      );
+    } else if (record.type === 'reminder') {
+      nextProfile.reminders = profile.reminders.filter(item =>
+        !(item.id === record.id || (item.title === record.details?.title && item.dueDate === record.details?.dueDate))
+      );
+    }
+    return { ...sourceData.health, [catId]: nextProfile };
+  };
+
+  const showUndoDeletion = (previousData, message) => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoDeletion({ previousData, message });
+    undoTimerRef.current = setTimeout(() => setUndoDeletion(null), 5000);
+  };
+
+  const confirmDeleteRecord = () => {
+    if (!pendingDeleteRecord) return;
+    const record = pendingDeleteRecord;
+    const previousData = data;
+    setData(prev => ({
+      ...prev,
+      health: removeLinkedHealthData(prev, record),
+      records: migrateRecords(prev.records).filter(item => item.id !== record.id)
+    }));
+    setPendingDeleteRecord(null);
+    showUndoDeletion(previousData, '记录已删除');
+  };
+
+  const undoLastDeletion = () => {
+    if (!undoDeletion) return;
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setData(undoDeletion.previousData);
+    setUndoDeletion(null);
+  };
+
+  const confirmDeleteCat = () => {
+    if (!pendingDeleteCat) return;
+    const cat = pendingDeleteCat;
+    const previousData = data;
+    const remainingCats = (data.cats || []).filter(item => item.id !== cat.id);
+    setData(prev => ({
+      ...prev,
+      cats: (prev.cats || []).filter(item => item.id !== cat.id),
+      archivedCats: {
+        ...(prev.archivedCats || {}),
+        [cat.id]: { name: cat.name, avatar: cat.avatar, deletedAt: new Date().toISOString() }
+      }
+    }));
+    setCatModal({ isOpen: false, mode: 'add', catId: null });
+    setPendingDeleteCat(null);
+    if (remainingCats.length > 0) switchCat(remainingCats[0].id);
+    else {
+      setCurrentCatId('');
+      setViewMode('family');
+      setCareCenterOpen(false);
+    }
+    showUndoDeletion(previousData, `${cat.name}的档案已删除`);
   };
 
   // --- Helpers ---
@@ -1464,7 +1566,8 @@ export default function App() {
     }
   };
 
-  const currentCat = (data.cats && data.cats.find(c => c.id === currentCatId)) || data.cats?.[0] || { id: '1', name: '毛孩子', avatar: 'orange' };
+  const currentCat = (data.cats && data.cats.find(c => c.id === currentCatId)) || data.cats?.[0] || null;
+  const hasCats = (data.cats || []).length > 0;
   const CurrentCatAvatar = CatAvatars[currentCat?.avatar] || CatAvatars.orange;
 
   const allRecords = migrateRecords(data.records);
@@ -1828,11 +1931,11 @@ export default function App() {
           <div className="relative z-30">
             <div className="flex items-center gap-3 cursor-pointer jelly-touch" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
               <div className="w-10 h-10 rounded-full bg-[#F4EFE6] flex items-center justify-center text-[#5D554D] border-2 border-white shadow-sm overflow-hidden">
-                {viewMode === 'family' ? <FamilyPawArtwork className="w-7 h-7" /> : <CurrentCatAvatar className="w-8 h-8" />}
+                {viewMode === 'family' || !hasCats ? <FamilyPawArtwork className="w-7 h-7" /> : <CurrentCatAvatar className="w-8 h-8" />}
               </div>
               <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#5D554D] to-[#8C8276] flex items-center gap-2">
-                {viewMode === 'family' ? '全家小日子' : currentCat?.name}
-                {viewMode === 'cat' && (
+                {viewMode === 'family' || !hasCats ? '全家小日子' : currentCat?.name}
+                {viewMode === 'cat' && currentCat && (
                   <button 
                     onClick={(e) => { 
                       e.stopPropagation(); 
@@ -1888,7 +1991,23 @@ export default function App() {
           {isDropdownOpen && <div className="fixed inset-0 z-20" onClick={() => setIsDropdownOpen(false)} />}
         </header>}
 
-        {!careCenterOpen && (<>
+        {!careCenterOpen && !hasCats && (
+          <section className="px-6 pt-8 pb-14">
+            <div className="bg-white rounded-[32px] border border-[#F0EBE1] px-6 py-9 text-center shadow-[0_8px_28px_rgba(0,0,0,0.035)]">
+              <FamilyPawArtwork className="w-20 h-20 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-[#4A443E]">先迎接家里的第一只猫咪吧</h2>
+              <p className="text-xs text-[#A9A096] leading-relaxed mt-2">建好档案后，就可以开始记录它的吃喝拉撒和健康小事。</p>
+              <button
+                onClick={openAddCat}
+                className="jelly-touch mt-6 px-6 py-3.5 rounded-[22px] bg-[#4A443E] text-white text-sm font-bold shadow-[0_8px_18px_rgba(74,68,62,0.18)]"
+              >
+                创建猫咪档案
+              </button>
+            </div>
+          </section>
+        )}
+
+        {!careCenterOpen && hasCats && (<>
         {/* --- 今日日期显示 --- */}
         <div className="text-center mb-6 mt-1">
           <span className="bg-[#F4EFE6]/80 text-[#8C8276] px-5 py-2 rounded-full text-sm font-medium tracking-wide shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
@@ -2436,7 +2555,7 @@ export default function App() {
         </section>}
 
         {/* --- 今日动态区 (时间轴) --- */}
-        {!careCenterOpen && <section className="px-6 mb-12">
+        {!careCenterOpen && hasCats && <section className="px-6 mb-12">
           <div className="flex justify-between items-center mb-5">
             <div>
               <h2 className="text-[16px] font-bold text-[#5D554D]">{viewMode === 'family' ? '最近家庭动态' : '最近动态'}</h2>
@@ -2467,6 +2586,13 @@ export default function App() {
                        <div className="flex items-baseline gap-2 mb-2">
                          <span className="font-bold text-[#4A443E] text-[15px]">{displayTitle}</span>
                          <span className="text-xs text-[#A9A096] font-medium bg-white px-2 py-0.5 rounded-md border border-[#F0EBE1]/50 shadow-sm">{event.time}</span>
+                         <button
+                           onClick={() => setPendingDeleteRecord(event)}
+                           className="jelly-touch ml-auto text-[10px] text-[#B98A80] px-2 py-1 rounded-full hover:bg-[#FDF0ED]"
+                           aria-label={`删除${displayTitle}记录`}
+                         >
+                           删除
+                         </button>
                        </div>
                        <div className="mb-2">
                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold ${
@@ -3463,6 +3589,14 @@ export default function App() {
               >
                 保存档案
               </button>
+              {catModal.mode === 'edit' && (
+                <button
+                  onClick={() => setPendingDeleteCat(data.cats?.find(cat => cat.id === catModal.catId) || null)}
+                  className="jelly-touch w-full mt-3 py-3 rounded-[20px] text-sm font-bold text-[#B56F62] bg-[#FDF0ED]"
+                >
+                  删除这只猫咪
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -3503,7 +3637,19 @@ export default function App() {
                                <div key={event.id || `history-event-${idx}`} className="flex gap-4 items-start">
                                  <div className="w-10 h-10 rounded-[14px] flex shrink-0 items-center justify-center"><info.icon className="w-10 h-10" /></div>
                                  <div className="flex-1 border-b border-[#F0EBE1]/60 pb-3 last:border-0 last:pb-0">
-                                   <div className="flex items-center justify-between"><span className="font-semibold text-[#5D554D] text-[14px]">{displayTitle}</span><span className="text-xs text-[#A9A096]">{event.time}</span></div>
+                                   <div className="flex items-center justify-between gap-2">
+                                     <span className="font-semibold text-[#5D554D] text-[14px]">{displayTitle}</span>
+                                     <div className="flex items-center gap-2">
+                                       <span className="text-xs text-[#A9A096]">{event.time}</span>
+                                       <button
+                                         onClick={() => setPendingDeleteRecord(event)}
+                                         className="jelly-touch text-[10px] text-[#B98A80] px-2 py-1 rounded-full bg-[#FDF0ED]"
+                                         aria-label={`删除${displayTitle}记录`}
+                                       >
+                                         删除
+                                       </button>
+                                     </div>
+                                   </div>
                                    <div className="text-xs text-[#8C8276] mt-1.5 leading-relaxed">
                                      {(event.tags && Array.isArray(event.tags)) ? event.tags.join(' · ') : ''}
                                    </div>
@@ -3527,6 +3673,49 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {/* --- 删除记录确认 --- */}
+        {pendingDeleteRecord && (
+          <div className="fixed inset-0 z-[70] bg-black/20 backdrop-blur-[2px] flex items-center justify-center px-6">
+            <div role="dialog" aria-modal="true" aria-labelledby="delete-record-title" className="w-full max-w-sm bg-white rounded-[28px] p-6 shadow-[0_18px_60px_rgba(74,68,62,0.18)]">
+              <ArtworkIcon name="remove" className="w-12 h-12 mx-auto" />
+              <h2 id="delete-record-title" className="text-lg font-bold text-center text-[#4A443E] mt-3">确定删除这条记录吗？</h2>
+              <p className="text-xs text-center text-[#8C8276] leading-relaxed mt-2">
+                {pendingDeleteRecord.scope === 'shared' || pendingDeleteRecord.scope === 'multiple'
+                  ? '这是一条共同记录，删除后其他猫咪和家庭视角中也不会再显示。'
+                  : `将删除这条${getRecordDisplayTitle(pendingDeleteRecord, TYPE_INFO[pendingDeleteRecord.type] || TYPE_INFO.health)}记录。`}
+              </p>
+              <div className="grid grid-cols-2 gap-3 mt-6">
+                <button onClick={() => setPendingDeleteRecord(null)} className="jelly-touch py-3 rounded-[18px] bg-[#F4EFE6] text-[#6E6257] text-sm font-bold">保留记录</button>
+                <button onClick={confirmDeleteRecord} className="jelly-touch py-3 rounded-[18px] bg-[#B56F62] text-white text-sm font-bold">确认删除</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- 删除猫咪档案确认 --- */}
+        {pendingDeleteCat && (
+          <div className="fixed inset-0 z-[70] bg-black/20 backdrop-blur-[2px] flex items-center justify-center px-6">
+            <div role="dialog" aria-modal="true" aria-labelledby="delete-cat-title" className="w-full max-w-sm bg-white rounded-[28px] p-6 shadow-[0_18px_60px_rgba(74,68,62,0.18)]">
+              {React.createElement(CatAvatars[pendingDeleteCat.avatar] || CatAvatars.orange, { className: 'w-16 h-16 mx-auto' })}
+              <h2 id="delete-cat-title" className="text-lg font-bold text-center text-[#4A443E] mt-3">确定删除「{pendingDeleteCat.name}」吗？</h2>
+              <p className="text-xs text-center text-[#8C8276] leading-relaxed mt-2">
+                档案会从猫咪列表中移除，以前的记录会继续保留，并标记为“已删除”。
+              </p>
+              <div className="grid grid-cols-2 gap-3 mt-6">
+                <button onClick={() => setPendingDeleteCat(null)} className="jelly-touch py-3 rounded-[18px] bg-[#F4EFE6] text-[#6E6257] text-sm font-bold">先不删除</button>
+                <button onClick={confirmDeleteCat} className="jelly-touch py-3 rounded-[18px] bg-[#B56F62] text-white text-sm font-bold">确认删除</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {undoDeletion && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-32px)] max-w-sm bg-[#4A443E] text-white rounded-[20px] px-4 py-3 shadow-[0_12px_36px_rgba(74,68,62,0.25)] flex items-center gap-3">
+            <span className="text-xs font-semibold flex-1">{undoDeletion.message}</span>
+            <button onClick={undoLastDeletion} className="jelly-touch text-xs font-bold text-[#F4D9C9] px-2 py-1">撤销</button>
+          </div>
+        )}
 
       </div>
     </div>
